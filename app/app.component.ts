@@ -26,14 +26,12 @@ export class AppComponent {
   nbTodos: number;
   nbTodosCompleted: number;
   _filter: string;
-  db: any;
   connected: number;
   username: string;
   password: string;
   userId: any;
 
   constructor(private http: Http) {
-    this.db = new Datastore({ filename: 'path/to/datafile', autoload: true });
     this.connected = 0;
   }
 
@@ -149,10 +147,10 @@ export class AppComponent {
       this.getAll();
     } else {
 
-      this.db.find({ 'complete': filter }, (err: Error, todos: string[]) => {
+      /*this.db.find({ 'complete': filter }, (err: Error, todos: string[]) => {
         if (err) throw err;
         this.listTodos = todos;
-      });
+      });*/
 
     }
     this._filter = filter;
@@ -180,7 +178,7 @@ export class AppComponent {
   // DEBUT DELETE 
   deleteAllTodo() {
     if (confirm("Voulez-vous réellement supprimer toute les taches ?")) {
-      this.http.delete('http://localhost:8080/delete/all')
+      this.http.delete('http://localhost:8080/delete/all/' + this.userId)
         .map(this.extractTasks)
         .catch(this.handleError)
         .subscribe(
@@ -195,7 +193,13 @@ export class AppComponent {
 
   deleteAllTodoCompleted() {
     if (confirm("Voulez-vous réellement supprimer toute les taches effectuer ?")) {
-      this.db.remove({ 'complete': true }, { multi: true });
+    this.http.delete('http://localhost:8080/delete/all/complete/' + this.userId)
+        .map(this.extractTasks)
+        .catch(this.handleError)
+        .subscribe(
+        listTodos => this.listTodos = listTodos
+        );
+
       this.getAll();
       this.getNb();
       this.getNbCompleted();

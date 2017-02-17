@@ -108,11 +108,18 @@ app.delete('/delete/:id', function (req, res) {
     });
 });
 
+// Delete task
+app.delete('/delete/all/complete/:id', function (req, res) {
+    connection.query('DELETE FROM todo WHERE complete = \'1\' AND user_id =' + req.params.id, function (err, results) {
+        if (err)
+            throw err;
+    });
+});
 
 
 // Delete all task
-app.delete('/delete/all', function (req, res) {
-    connection.query('DELETE FROM todo', function (err, results) {
+app.delete('/delete/all/:id', function (req, res) {
+    connection.query('DELETE FROM todo WHERE user_id =' + req.params.id, function (err, results) {
         if (err)
             throw err;
     });
