@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import Datastore = require('nedb');
 
 import { Injectable } from '@angular/core';
-import { Http, Response, Headers,RequestOptions  } from '@angular/http';
+import { Http, Response, Headers, RequestOptions } from '@angular/http';
 
 
-import { Observable } from 'rxjs/Observable';
+//import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 
@@ -26,31 +27,106 @@ export class AppComponent {
   nbTodosCompleted: number;
   _filter: string;
   db: any;
+  connected: number;
+  username: string;
+  password: string;
+  userId: any;
 
   constructor(private http: Http) {
     this.db = new Datastore({ filename: 'path/to/datafile', autoload: true });
-    this.getAll();
-    this.getNb();
-    this.getNbCompleted();
-    this._filter = 'tout';
+    this.connected = 0;
   }
 
 
-  // Get all tasks
+
+  // DEBUT LOGIN
+  extractLogin(res: Response) {
+    let body = res.json();
+    return body || {};
+  }
+
+  onSubmitLogin() {
+    var login: any = {
+      username: this.username,
+      password: this.password,
+    };
+
+    this.http.post('http://localhost:8080/login', login)
+      .map(this.extractLogin)
+      .catch(this.handleError)
+      .subscribe(
+      connected => {
+        this.connected = connected.connected
+        this.userId = connected.id
+        this.getAll();
+        this.getNb();
+        this.getNbCompleted();
+        this._filter = 'tout';
+
+      });
+  }
+  // FIN LOGIN
+
+
+  // NEW TASK
+  onSubmit() {
+    var todo: any = {
+      task: this.newTodo,
+      complete: false,
+      user_id: this.userId
+    };
+
+    this.http.post('http://localhost:8080/new', todo)
+      .map(this.extractTasks)
+      .catch(this.handleError)
+      .subscribe(
+      listTodos => this.listTodos.push(todo)
+      );
+
+    this.getAll();
+    this.getNb();
+    this._filter = 'tout';
+    this.newTodo = '';
+  }
+
+  // DEBUT GET ALL TASKS
   getAll() {
-    this.http.get('http://localhost:8080')
+    this.http.get('http://localhost:8080/' + this.userId)
       .map(this.extractTasks)
       .catch(this.handleError)
       .subscribe(
       listTodos => this.listTodos = listTodos
       );
   }
-
   extractTasks(res: Response) {
     let body = res.json();
     return body || {};
   }
+  // FIN GET ALL TASKS
 
+
+  extractNbTasks(res: Response) {
+    let body = res.json();
+    return body[0]['COUNT(*)'] || {};
+  }
+  // Get number tasks
+  getNb() {
+    this.http.get('http://localhost:8080/tasks/count/' + this.userId)
+      .map(this.extractNbTasks)
+      .catch(this.handleError)
+      .subscribe(
+      listTodos => this.nbTodos = listTodos
+      );
+  }
+  // Get number tasks completed
+  getNbCompleted() {
+    this.http.get('http://localhost:8080/tasks/complete/' + this.userId)
+      .map(this.extractNbTasks)
+      .catch(this.handleError)
+      .subscribe(
+      listTodos => this.nbTodosCompleted = listTodos
+      );
+  }
 
 
   private handleError(error: Response | any) {
@@ -67,29 +143,6 @@ export class AppComponent {
     return Observable.throw(errMsg);
   }
 
-
-
-
-
-
-  // Get number tasks
-  getNb() {
-    this.db.count({}, (err: Error, count: number) => {
-      if (err) throw err;
-      this.nbTodos = count;
-    });
-  }
-
-
-  // Get number tasks completed
-  getNbCompleted() {
-    this.db.count({ 'complete': true }, (err: Error, count: number) => {
-      if (err) throw err;
-      this.nbTodosCompleted = count;
-    });
-  }
-
-
   filter(filter: any) {
 
     if (filter == 'tout') {
@@ -103,52 +156,37 @@ export class AppComponent {
 
     }
     this._filter = filter;
-
   }
-
-  onSubmit() {
-    var todo: any = {
-      name: this.newTodo,
-      complete: false
-    };
-    //this.db.insert(todo);
-
-
-console.log(todo);
-let headers = new Headers({ 'Content-Type': 'application/json' });
-let options = new RequestOptions({ headers: headers });
-this.http.post('http://localhost:8080/new', { todo }, options)
-                    .map(this.extractTasks)
-      .catch(this.handleError);
-
-
-
-    
-    this.getAll();
-    this.getNb();
-    this._filter = 'tout';
-    this.newTodo = '';
-  }
-
 
 
   completeTodo(id: string) {
-    this.db.findOne({ '_id': id }, (err: Error, todo: any) => {
-      if (err) throw err;
-      if (todo.complete === true) {
-        todo.complete = false;
-      } else {
-        todo.complete = true;
-      }
-      this.db.update({ _id: id }, { $set: { complete: todo.complete } });
-      this.getAll();
-      this.getNbCompleted();
-    });
+    var todo: any = {
+      id: id,
+    };
+    let headers = new Headers({ 'Content-Type': 'application/json' });
+    let options = new RequestOptions({ headers: headers });
+    this.http.post('http://localhost:8080/complete', todo)
+      .map(this.extractTasks)
+      .catch(this.handleError)
+      .subscribe(
+      listTodos => this.listTodos.push(todo)
+      );
+
+    this.getAll();
+    this.getNbCompleted();
   }
 
+
+  // DEBUT DELETE 
   deleteAllTodo() {
     if (confirm("Voulez-vous réellement supprimer toute les taches ?")) {
-      this.db.remove({}, { multi: true });
+      this.http.delete('http://localhost:8080/delete/all')
+        .map(this.extractTasks)
+        .catch(this.handleError)
+        .subscribe(
+        listTodos => this.listTodos = listTodos
+        );
+
       this.getAll();
       this.getNb();
       this.getNbCompleted();
@@ -167,11 +205,17 @@ this.http.post('http://localhost:8080/new', { todo }, options)
 
   deleteTodo(id: string) {
     if (confirm("Voulez-vous réellement supprimer cette tache ?")) {
-      this.db.remove({ '_id': id });
+      this.http.delete('http://localhost:8080/delete/' + id)
+        .map(this.extractTasks)
+        .catch(this.handleError)
+        .subscribe(
+        listTodos => this.listTodos = listTodos
+        );
       this.getAll();
       this.getNb();
       this.getNbCompleted();
     }
   }
+  // FIN DELETE
 
 }
