@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Liste des tâches</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="lib/css/bootstrap.min.css">
+
+  <!-- Polyfill(s) for older browsers -->
+  <script src="node_modules/core-js/client/shim.min.js"></script>
+
+  <script src="node_modules/zone.js/dist/zone.js"></script>
+  <script src="node_modules/systemjs/dist/system.src.js"></script>
+  <script src="systemjs.config.js"></script>
+
+  <link href="lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+  <link rel="stylesheet" href="lib/css/jquery-ui.css" />
+
+  <link rel="stylesheet" href="lib/font/font.css" />
+
+  <link href="lib/css/tasks.css" rel="stylesheet">
+  <link href="lib/css/style.css" rel="stylesheet">
+  <link href="lib/css/style-responsive.css" rel="stylesheet" />
+
+  <script>
+  System.import('app').catch(function (err) { console.error(err); });
+  </script>
+</head>
+
+<body>
+  <my-todo-app>
+    <p class="text-center" style="padding:30px;">Veuillez patienter ...</p>
+  </my-todo-app>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <p class="text-muted text-right">© 2017 Ashvin PAÏNIAYE</p>
+      </div>
+    </div>
+  </div>
+
+<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+
+  <script src="lib/js/jquery-3.1.1.min.js"></script>
+  <script src="lib/js/bootstrap.min.js"></script>
+  <script src="lib/js/respond.min.js"></script>
+  <script src="lib/js/jquery-ui.js"></script>
+
+<script>if (window.module) module = window.module;</script>
+  
+  <script>
+
+  $(function () {
+    $("#sortable").sortable();
+    $("#sortable").disableSelection();
+  });
+  </script>
+
+</body>
+
+</html>

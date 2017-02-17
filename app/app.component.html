@@ -1,0 +1,63 @@
+<div class="container">
+  <div class="row">
+    <div class="col-md-8 col-md-offset-2">
+      <h1 class="text-center">Liste des taches</h1>
+      <form (submit)="onSubmit()">
+        <div class="form-group">
+          <input [(ngModel)]="newTodo" type="text" class="form-control" name="newTodo" placeholder="Entrer une tache" style="border-radius:0;" required>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<section class="container" *ngIf="nbTodos > 0">
+
+  <div class="row">
+    <div class="col-md-12">
+      <section class="panel tasks-widget">
+        <header class="panel-heading">
+          <div class="pull-right">
+            <button class="btn btn-success btn-xs" (click)="deleteAllTodoCompleted()" *ngIf="nbTodosCompleted > 0">Supprimer les taches effectuer</button>
+            <button class="btn btn-danger btn-xs" (click)="deleteAllTodo()">Tout supprimer</button>
+          </div>
+        </header>
+        <div class="panel-body">
+          <div class="task-content">
+            <div class="text-center">
+              <div class="btn-group" style="margin-bottom:15px;" role="group" aria-label="...">
+                <button *ngIf="_filter == 'tout'" type="button" class="btn btn-default btn-xs active" (click)="filter('tout')">Tout</button>
+                <button *ngIf="_filter != 'tout'" type="button" class="btn btn-default btn-xs" (click)="filter('tout')">Tout</button>
+
+                <button *ngIf="_filter == true" type="button" class="btn btn-default btn-xs active" (click)="filter(true)">Effetuer</button>
+                <button *ngIf="_filter != true" type="button" class="btn btn-default btn-xs" (click)="filter(true)">Effetuer</button>
+
+                <button *ngIf="_filter == false" type="button" class="btn btn-default btn-xs active" (click)="filter(false)">Non effectuer</button>
+                <button *ngIf="_filter != false" type="button" class="btn btn-default btn-xs" (click)="filter(false)">Non effectuer</button>
+              </div>
+            </div>
+            
+            <ul id="sortable" class="task-list ui-sortable">
+              <li [ngClass]="{'list-success task-done':todo.complete, 'list-inverse':!todo.complete}" *ngFor="let todo of listTodos;">
+                <div class="task-checkbox">
+                  <input type="checkbox" title="effectuer" (click)="completeTodo(todo._id)" class="task-checkbox" value="" [checked]="todo.complete" />
+                </div>
+                <div class="task-title">
+                  <label class="task-title-sp" style="font-weight: normal; margin-left:10px;">{{todo.task}}</label>
+                  <div class="pull-right">
+                    <button class="btn btn-danger btn-xs fa fa-trash-o" (click)="deleteTodo(todo._id)"></button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="add-task-row">
+            <p>
+{{nbTodosCompleted}} {{nbTodosCompleted > 1 ? 'taches' : 'tache'}} effectué / {{nbTodos}} {{nbTodos > 1 ? 'taches' : 'tache'}}
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
